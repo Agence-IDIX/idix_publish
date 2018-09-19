@@ -1,0 +1,5 @@
+name: idix_publish
+type: module
+description: Manage content publication
+core: 8.x
+package: IDIX

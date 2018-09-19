@@ -1,0 +1,21 @@
+{
+  "name": "idix/idix_publish",
+  "type": "drupal-custom-module",
+  "description": "Module de gestion de la publication des noeuds",
+  "keywords": ["Drupal", "configuration", "configuration management"],
+  "authors": [
+    {
+      "name": "Sylvain Tixier",
+      "email": "sylvain.tixier@idix.fr",
+      "role": "Maintainer"
+    },
+    {
+      "name": "Nicolas Bugeja",
+      "email": "nicolas.bugeja@idix.fr",
+      "role": "Maintainer"
+    }
+  ],
+  "require": {
+    "drupal/core": "8.*"
+  }
+}
