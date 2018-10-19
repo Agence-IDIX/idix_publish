@@ -36,7 +36,7 @@ function idix_publish_schema(){
     'indexes' => array(
       'published_at' => array('published_at'),
     ),
-    'primary key' => array('nid'),
+    'primary key' => array('nid','langcode'),
   );
 
   return $schema;
