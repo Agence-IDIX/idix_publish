@@ -16,6 +16,7 @@ class IdixNode extends BaseNode {
     $query = \Drupal::database()->select('publication_date');
     $query->addField('publication_date','published_at');
     $query->condition('nid',$this->id());
+    $query->condition('langcode',$this->langcode);
 
     $published_date  = $query->execute()->fetchField();
 
@@ -43,9 +44,10 @@ class IdixNode extends BaseNode {
 
     // Save the publication date to the database.
     \Drupal::database()->merge('publication_date')
-      ->key(array('nid' => $this->id()))
+      ->key(array('nid' => $this->id() , 'langcode' => $this->langcode))
       ->insertFields(array(
         'nid' => $this->id(),
+        'langcode' => $this->langcode,
         'published_at' => \Drupal::time()->getRequestTime()
       ))
       ->updateFields(

@@ -26,6 +26,12 @@ function idix_publish_schema(){
         'not null' => TRUE,
         'default' => 0,
       ),
+      'langcode' => array(
+        'description' => 'content language',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE
+      )
     ),
     'indexes' => array(
       'published_at' => array('published_at'),
@@ -46,6 +52,7 @@ function idix_publish_install() {
   $query = \Drupal::database()->select('node_field_data');
   $query->addField('node_field_data', 'nid');
   $query->addField('node_field_data', 'created', 'published_at');
+  $query->addField('node_field_data', 'langcode', 'langcode');
   $nids = $query->condition('status', 1);
 
   \Drupal::database()->insert('publication_date')
