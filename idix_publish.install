@@ -6,49 +6,23 @@
  * Time: 14:55
  */
 
-/**
- * Implementation de hook_schema()
- */
-function idix_publish_schema(){
-
-  $schema['publication_date'] = array(
-    'description' => 'Keep the publication timestamp for each node.',
-    'fields' => array(
-      'nid' => array(
-        'description' => 'The {node}.nid of the node.',
-        'type' => 'int',
-        'not null' => TRUE,
-        'default' => 0,
-      ),
-      'published_at' => array(
-        'description' => 'The timestamp of the node publication.',
-        'type' => 'int',
-        'not null' => TRUE,
-        'default' => 0,
-      ),
-    ),
-    'indexes' => array(
-      'published_at' => array('published_at'),
-    ),
-    'primary key' => array('nid'),
-  );
-
-  return $schema;
-}
 
 /**
  * Implements hook_install().
  */
 function idix_publish_install() {
-
+  \Drupal::entityTypeManager()->clearCachedDefinitions();
+  \Drupal::service('entity.definition_update_manager')->applyUpdates();
 
   //on met à jour les anciens nodes avec leur date de création.
-  $query = \Drupal::database()->select('node_field_data');
-  $query->addField('node_field_data', 'nid');
-  $query->addField('node_field_data', 'created', 'published_at');
-  $nids = $query->condition('status', 1);
+  $query = \Drupal::database()->update('node_field_data');
+  $query->expression('published_at', 'created');
 
-  \Drupal::database()->insert('publication_date')
-    ->from($nids)
-    ->execute();
+  $query->execute();
+}
+
+function idix_publish_uninstall(){
+  if(\Drupal\Core\Database\Database::getConnection()->schema()->tableExists('publication_date')){
+    \Drupal\Core\Database\Database::getConnection()->schema()->dropTable('publication_date');
+  }
 }

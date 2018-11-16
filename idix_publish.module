@@ -25,16 +25,6 @@ function idix_publish_help($route_name, RouteMatchInterface $route_match) {
 }
 
 /**
- * Implements hook_node_delete().
- */
-function publication_date_node_delete($node) {
-  // Delete the publication date for the deleted node.
-  \Drupal::database()->delete('publication_date')
-    ->condition('nid', $node->nid)
-    ->execute();
-}
-
-/**
  * @param EntityTypeInterface[] $entity_types
  */
 function idix_publish_entity_type_build(&$entity_types) {

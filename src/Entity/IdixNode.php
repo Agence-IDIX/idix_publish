@@ -8,51 +8,47 @@ namespace Drupal\idix_publish\Entity;
  */
 
 use Drupal\Core\Entity\EntityStorageInterface;
+use Drupal\Core\Entity\EntityTypeInterface;
+use Drupal\Core\Field\BaseFieldDefinition;
 use Drupal\node\Entity\Node as BaseNode;
 
 class IdixNode extends BaseNode {
 
+  /**
+   * {@inheritdoc}
+   */
+  public static function baseFieldDefinitions(EntityTypeInterface $entity_type) {
+    $fields = parent::baseFieldDefinitions($entity_type);
+    $fields += static::publishedBaseFieldDefinitions($entity_type);
+
+    $fields['published_at'] = BaseFieldDefinition::create('timestamp')
+      ->setLabel(t('Publication date'))
+      ->setDescription(t('The node publication date.'))
+      ->setDefaultValue(NULL);
+
+    return $fields;
+  }
+
   public function published_at() {
-    $query = \Drupal::database()->select('publication_date');
-    $query->addField('publication_date','published_at');
-    $query->condition('nid',$this->id());
 
-    $published_date  = $query->execute()->fetchField();
+    $published_date  = $this->get('published_at')->value;
 
-    return ($published_date) ? $published_date : $this->getCreatedTime();
+    return (!is_null($published_date)) ? $published_date : $this->getCreatedTime();
   }
 
   /**
    * {@inheritdoc}
    */
-  public function postSave(EntityStorageInterface $storage, $update = TRUE) {
-    parent::postSave($storage);
+  public function preSave(EntityStorageInterface $storage) {
+    parent::preSave($storage);
 
+    if($this->isNew()) {
+      $this->set('published_at', time());
+
+    }
     //node is getting updated from unpublished to published status
-    if($update && $this->original->status->value == 0 && $this->status->value == 1) {
-      $this->_publication_date_set_date();
+    if(isset($this->original) && $this->original->status->value == 0 && $this->status->value == 1) {
+      $this->set('published_at', time());
     }
-
-    //node is getting created with a publish status
-    if(!$update && $this->status->value == 1) {
-      $this->_publication_date_set_date();
-    }
-  }
-
-  function _publication_date_set_date() {
-
-    // Save the publication date to the database.
-    \Drupal::database()->merge('publication_date')
-      ->key(array('nid' => $this->id()))
-      ->insertFields(array(
-        'nid' => $this->id(),
-        'published_at' => \Drupal::time()->getRequestTime()
-      ))
-      ->updateFields(
-        array(
-          'published_at' => \Drupal::time()->getRequestTime()
-        )
-      )
-      ->execute();
   }
 }
