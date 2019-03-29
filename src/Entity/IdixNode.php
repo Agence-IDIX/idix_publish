@@ -43,7 +43,7 @@ class IdixNode extends BaseNode {
     parent::preSave($storage);
 
     if($this->isNew()) {
-      $this->set('published_at', time());
+      $this->set('published_at', $this->getCreatedTime());
 
     }
     //node is getting updated from unpublished to published status
