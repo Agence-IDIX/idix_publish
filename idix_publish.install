@@ -11,18 +11,72 @@
  * Implements hook_install().
  */
 function idix_publish_install() {
-  \Drupal::entityTypeManager()->clearCachedDefinitions();
-  \Drupal::service('entity.definition_update_manager')->applyUpdates();
 
-  //on met à jour les anciens nodes avec leur date de création.
-  $query = \Drupal::database()->update('node_field_data');
-  $query->expression('published_at', 'created');
-
-  $query->execute();
 }
 
 function idix_publish_uninstall(){
   if(\Drupal\Core\Database\Database::getConnection()->schema()->tableExists('publication_date')){
     \Drupal\Core\Database\Database::getConnection()->schema()->dropTable('publication_date');
+  }
+}
+
+/**
+ * Ajout de la colonne published_at
+ */
+function idix_publish_update_8701(&$sandbox){
+  \Drupal::entityTypeManager()->clearCachedDefinitions();
+
+  $definition_update_manager = \Drupal::entityDefinitionUpdateManager();
+  /** @var \Drupal\Core\Entity\EntityLastInstalledSchemaRepositoryInterface $last_installed_schema_repository */
+  $last_installed_schema_repository = \Drupal::service('entity.last_installed_schema.repository');
+
+  $entity_type = $definition_update_manager->getEntityType('node');
+  $field_storage_definitions = $last_installed_schema_repository->getLastInstalledFieldStorageDefinitions('node');
+
+  $field_storage_definitions['published_at'] = \Drupal\Core\Field\BaseFieldDefinition::create('timestamp')
+    ->setName('published_at')
+    ->setTargetEntityTypeId('node')
+    ->setTargetBundle(null)
+    ->setLabel(t('Publication date'))
+    ->setDescription(t('The node publication date.'))
+    ->setDefaultValue(NULL);
+
+  $definition_update_manager->updateFieldableEntityType($entity_type, $field_storage_definitions, $sandbox);
+}
+
+/**
+ * valeur par défaut pour la colonne published_at
+ */
+function idix_publish_update_8702(&$sandbox){
+  if(!isset($sandbox['total'])) {
+    $countQuery = \Drupal::entityTypeManager()->getStorage('node')->getQuery();
+    $sandbox['total'] = $countQuery->count()->execute();
+    $sandbox['current'] = 0;
+  }
+  $nodes_per_batch = 25;
+  $query = \Drupal::entityTypeManager()->getStorage('node')->getQuery();
+  $start = $sandbox['current'];
+  $query->range($start, $nodes_per_batch);
+
+  $results = $query->execute();
+
+  if(is_array($results) && count($results) > 0){
+    $nodes  = \Drupal::entityTypeManager()->getStorage('node')->loadMultiple($results);
+    /** @var \Drupal\node\Entity\Node $node */
+    foreach ($nodes as $node){
+      $node->set('published_at', $node->getCreatedTime());
+      $node->save();
+      $sandbox['current']++;
+    }
+  }else{
+    $sandbox['current'] = $sandbox['total'];
+  }
+
+  \Drupal::messenger()->addMessage($sandbox['current'] . ' nodes processed.');
+
+  if ($sandbox['total'] == 0) {
+    $sandbox['#finished'] = 1;
+  } else {
+    $sandbox['#finished'] = ($sandbox['current'] / $sandbox['total']);
   }
 }
