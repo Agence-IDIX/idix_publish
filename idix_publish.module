@@ -38,12 +38,13 @@ function idix_publish_entity_type_build(&$entity_types) {
  * Implements hook_form_alter().
  */
 function idix_publish_form_alter(&$form, \Drupal\Core\Form\FormStateInterface $form_state, $form_id) {
-
   if(isset($form['published_at'])) {
-    $form['published_at']['widget'][0]['publication_date']['#states'] = [
-      'invisible' => [
-        'input[name="published_at[0][enforce]"]' => ['checked' => FALSE]
-      ]
-    ];
+    if(isset($form['published_at']['widget'][0]['publication_date']) && isset($form['published_at']['widget'][0]['enforce'])) {
+      $form['published_at']['widget'][0]['publication_date']['#states'] = [
+        'invisible' => [
+          'input[name="published_at[0][enforce]"]' => ['checked' => FALSE]
+        ]
+      ];
+    }
   }
 }
