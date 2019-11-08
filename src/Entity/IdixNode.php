@@ -22,7 +22,7 @@ class IdixNode extends BaseNode {
     $fields += static::publishedBaseFieldDefinitions($entity_type);
 
     $fields['published_at'] = BaseFieldDefinition::create('timestamp')
-//      ->setLabel(t('IDIX Publication date'))
+      ->setLabel(t('Publication date'))
       ->setDescription(t('The node publication date.'))
       ->setDisplayConfigurable('form', TRUE)
       ->setDefaultValue(NULL);
